@@ -1,52 +1,44 @@
-// Load the TCP Library
-net = require('net');
+const net = require('net');
+const fs = require('fs');
 
-// Keep track of the chat clients
-var clients = [];
+HOST = '127.0.0.1';
+PORT = 5100;
 
-// Start a TCP Server
-net.createServer(function (socket) {
 
-  // Identify this client
-  socket.name = socket.remoteAddress + ":" + socket.remotePort 
+// Inicia o TCP Server
+net.createServer (function (socket) {
 
-  // Put this new client in the list
-  clients.push(socket);
+  socket.name = HOST + ":" + socket.remotePort;
+   
+  console.log('\x1b[32m%s\x1b[0m', "\n"+ socket.name + " entrou no chat.\n");
+  escreveArquivo( socket.name + " entrou no chat.");
+  
 
-  // Send a nice welcome message and announce
-  socket.write("Welcome " + socket.name + "\n");
-  broadcast("\n"+ socket.name + " joined the chat\n", socket);
 
-  // Handle incoming messages from clients.
   socket.on('data', function (data) {
-    broadcast("\n" + socket.name + "> " + data, socket);
+    console.log(socket.name + "> " + data);
+    escreveArquivo(socket.name + "> " + data);
   });
 
   // Trata a desconexao do cliente
   socket.on('end', function () {
-    clients.splice(clients.indexOf(socket), 1);
-    broadcast(socket.name + " Desconectou\n");
+    console.log("Conexão finalizada\n");
   });
 
+  //Tratamento de erro de conexão
   socket.on("error", function () {
-    console.log("\n Cliente desconectado por erro ");
-    clients.splice(clients.indexOf(socket), 1);
+    console.log('\x1b[33m%s\x1b[0m', "\n Cliente " + socket.name + " desconectado.");
   });
 
-  
-  
-  // Send a message to all clients
-  function broadcast(message, sender) {
-    clients.forEach(function (client) {
-      // Don't want to send it to sender
-      if (client === sender) return;
-      client.write(message);
-    });
-    // Log it to the server output too
-    process.stdout.write(message)
-  }
+      
+}).listen(PORT);
 
-}).listen(5000);
 
-// Put a friendly message on the terminal of the server.
-console.log("Chat server running at port 5000\n");
+function escreveArquivo(msg){
+  const CreateFiles = fs.createWriteStream('./historicoChatTCP.txt', {
+      flags: 'a' 
+  })
+  CreateFiles.write( msg +'\r\n') //'\r\n at the end of each value
+}
+
+console.log("Chat Server rodando na porta: " + PORT + "\n");
