@@ -22,7 +22,8 @@ client.connect(PORT, HOST, function() {
   	}
 });
 
- client.on("error", function () {
-    console.log("\n Error na conexao. ");
-    client.end();
- });
+
+client.on("error", function () {
+   console.log("\n Error na conexao. ");
+   client.end();
+});
